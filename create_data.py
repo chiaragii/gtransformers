@@ -1,7 +1,7 @@
 import dgl
 import torch
-from dgl import save_graphs
-
+import tensorflow as tf
+import numpy as np
 
 def load_graphs(path_to_graphs):
     enriched_graphs = open(path_to_graphs, 'r').read()
@@ -78,10 +78,45 @@ def create_dgl_graphs(graph_list):
         dgl_graphs.append(g)
     return dgl_graphs, graph_labels
 
+def hot_encoding(graph_labels):
+    lines = 0
+    labels = []
+    indices = []
+    hot_labels = []
+    with open('data/graphs/attributi.txt', 'r') as f:
+        for line in f:
+            indices.append(lines)
+            lines = lines + 1
+            labels.append(line.strip('\n'))
+    for label in graph_labels:
+        hot = [0] * len(labels)
+        index = labels.index(label)
+        hot[index] = hot[index]+1
+        #tensor = torch.tensor(hot)
+        hot_labels.append(hot)
+    return hot_labels
+
+def collate(samples):
+    graphs, labels = map(list, zip(*samples))
+    labels = torch.tensor(np.array(labels)).unsqueeze(1)
+    batched_graph = dgl.batch(graphs)
+    return batched_graph, labels
+
+def create_label_dict(tensor_labels):
+    pass
 
 print("Creating dataset..." )
 data_dir = 'data/graphs/'
+samples = []
 subgraphs = load_graphs(data_dir + 'BPI12_graph.g')
 dgl_subgraphs, graph_labels = create_dgl_graphs(subgraphs)
-
-save_graphs(data_dir+'graphs.pkl', dgl_subgraphs, {'labels': graph_labels})
+label_tensors = hot_encoding(graph_labels)
+for i in range(0, len(dgl_subgraphs)):
+    pair = []
+    pair.append(dgl_subgraphs[i])
+    pair.append(label_tensors[i])
+    samples.append(pair)
+batched_graphs, tensor_labels = collate(samples)
+#dgl.save_graphs("Graphs.pkl", batched_graphs, {'labels': tensor_labels})
+#print('ciao')
+#save_graphs(data_dir+'graphs.pkl', dgl_subgraphs, {'labels': graph_labels})
