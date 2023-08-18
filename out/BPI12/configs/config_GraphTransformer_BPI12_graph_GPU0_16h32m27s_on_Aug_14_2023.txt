@@ -1,0 +1,10 @@
+Dataset: BPI12_graph,
+Model: GraphTransformer
+
+params={'seed': 41, 'epochs': 1000, 'batch_size': 128, 'num_nodes': 5, 'init_lr': 0.0007, 'lr_reduce_factor': 0.5, 'lr_schedule_patience': 15, 'min_lr': 1e-06, 'weight_decay': 0.0, 'print_epoch_interval': 5, 'max_time': 24}
+
+net_params={'L': 10, 'n_heads': 8, 'hidden_dim': 64, 'out_dim': 64, 'edge_feat': False, 'residual': True, 'readout': 'mean', 'in_feat_dropout': 0.0, 'dropout': 0.0, 'layer_norm': False, 'batch_norm': False, 'self_loop': False, 'lap_pos_enc': True, 'pos_enc_dim': 4, 'wl_pos_enc': False, 'full_graph': False, 'device': device(type='cpu'), 'gpu_id': 0, 'batch_size': 128, 'num_nodes_types': 25, 'in_dim': 3, 'n_classes': 25, 'total_param': 334041}
+
+
+Total Parameters: 334041
+
