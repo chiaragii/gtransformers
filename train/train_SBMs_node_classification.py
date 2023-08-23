@@ -7,7 +7,7 @@ import torch.nn as nn
 import math
 import dgl
 
-from train.metrics import accuracy_SBM as accuracy
+from train.metrics import accuracy_TU as accuracy
 
 def train_epoch(model, optimizer, device, data_loader, epoch):
 
@@ -42,8 +42,10 @@ def train_epoch(model, optimizer, device, data_loader, epoch):
         optimizer.step()
         epoch_loss += loss.detach().item()
         epoch_train_acc += accuracy(batch_scores, batch_labels)
+        #modificato
+        nb_data += batch_labels.size(0)
     epoch_loss /= (iter + 1)
-    epoch_train_acc /= (iter + 1)
+    epoch_train_acc /= nb_data
     
     return epoch_loss, epoch_train_acc, optimizer
 
@@ -74,8 +76,9 @@ def evaluate_network(model, device, data_loader, epoch):
             loss = model.loss(batch_scores, torch.flatten(batch_labels))
             epoch_test_loss += loss.detach().item()
             epoch_test_acc += accuracy(batch_scores, batch_labels)
+            nb_data += batch_labels.size(0)
         epoch_test_loss /= (iter + 1)
-        epoch_test_acc /= (iter + 1)
+        epoch_test_acc /= nb_data
         
     return epoch_test_loss, epoch_test_acc
 

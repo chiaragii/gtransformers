@@ -14,6 +14,9 @@ import pickle
 
 import torch
 import torch.nn as nn
+
+
+
 import torch.nn.functional as F
 
 import torch.optim as optim
@@ -133,7 +136,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                                                      verbose=True)
 
     epoch_train_losses, epoch_val_losses = [], []
-    epoch_train_MAEs, epoch_val_MAEs = [], []
+    epoch_train_accs, epoch_val_accs = [], []
 
     # import train and evaluate functions
     from train.train_SBMs_node_classification import train_epoch, evaluate_network
@@ -151,28 +154,28 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_mae, optimizer = train_epoch(model, optimizer, device, train_loader,
+                epoch_train_loss, epoch_train_acc, optimizer = train_epoch(model, optimizer, device, train_loader,
                                                                            epoch)
 
-                epoch_val_loss, epoch_val_mae = evaluate_network(model, device, val_loader, epoch)
-                _, epoch_test_mae = evaluate_network(model, device, test_loader, epoch)
+                epoch_val_loss, epoch_val_acc = evaluate_network(model, device, val_loader, epoch)
+                _, epoch_test_acc = evaluate_network(model, device, test_loader, epoch)
 
                 epoch_train_losses.append(epoch_train_loss)
                 epoch_val_losses.append(epoch_val_loss)
-                epoch_train_MAEs.append(epoch_train_mae)
-                epoch_val_MAEs.append(epoch_val_mae)
+                epoch_train_accs.append(epoch_train_acc)
+                epoch_val_accs.append(epoch_val_acc)
 
                 writer.add_scalar('train/_loss', epoch_train_loss, epoch)
                 writer.add_scalar('val/_loss', epoch_val_loss, epoch)
-                writer.add_scalar('train/_mae', epoch_train_mae, epoch)
-                writer.add_scalar('val/_mae', epoch_val_mae, epoch)
-                writer.add_scalar('test/_mae', epoch_test_mae, epoch)
+                writer.add_scalar('train/_acc', epoch_train_acc, epoch)
+                writer.add_scalar('val/_acc', epoch_val_acc, epoch)
+                writer.add_scalar('test/_acc', epoch_test_acc, epoch)
                 writer.add_scalar('learning_rate', optimizer.param_groups[0]['lr'], epoch)
 
                 t.set_postfix(time=time.time() - start, lr=optimizer.param_groups[0]['lr'],
                               train_loss=epoch_train_loss, val_loss=epoch_val_loss,
-                              train_MAE=epoch_train_mae, val_MAE=epoch_val_mae,
-                              test_MAE=epoch_test_mae)
+                              train_acc=epoch_train_acc, val_acc=epoch_val_acc,
+                              test_acc=epoch_test_acc)
 
                 per_epoch_time.append(time.time() - start)
 
@@ -205,10 +208,10 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('-' * 89)
         print('Exiting from training early because of KeyboardInterrupt')
 
-    _, test_mae = evaluate_network(model, device, test_loader, epoch)
-    _, train_mae = evaluate_network(model, device, train_loader, epoch)
-    print("Test MAE: {:.4f}".format(test_mae))
-    print("Train MAE: {:.4f}".format(train_mae))
+    _, test_acc = evaluate_network(model, device, test_loader, epoch)
+    _, train_acc = evaluate_network(model, device, train_loader, epoch)
+    print("Test Accuracy: {:.4f}".format(test_acc))
+    print("Train Accuracy: {:.4f}".format(train_acc))
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
@@ -220,10 +223,10 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     """
     with open(write_file_name + '.txt', 'w') as f:
         f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n
-    FINAL RESULTS\nTEST MAE: {:.4f}\nTRAIN MAE: {:.4f}\n\n
-    Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n""" \
-                .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param'],
-                        test_mae, train_mae, epoch, (time.time() - t0) / 3600, np.mean(per_epoch_time)))
+    FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\n\n
+    Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""\
+          .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param'],
+                  test_acc, train_acc, epoch, (time.time()-t0)/3600, np.mean(per_epoch_time)))
 
 
 def main():

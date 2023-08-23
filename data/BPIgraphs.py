@@ -293,9 +293,9 @@ class GraphsDataset(torch.utils.data.Dataset):
 
         print("Creating graph dataset...")
         self.name = name
-        self.train = GraphsDGL('/home/chiara/graphtransformer (copia)/data/graphs/training.g', self.num_nodes)
-        self.test = GraphsDGL('/home/chiara/graphtransformer (copia)/data/graphs/test.g', self.num_nodes)
-        self.val = GraphsDGL('/home/chiara/graphtransformer (copia)/data/graphs/val.g', self.num_nodes)
+        self.train = GraphsDGL('data/graphs/training.g', self.num_nodes)
+        self.test = GraphsDGL('data/graphs/test.g', self.num_nodes)
+        self.val = GraphsDGL('data/graphs/val.g', self.num_nodes)
         print('train, test, val sizes :', len(self.train), len(self.test), len(self.val))
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time() - start))

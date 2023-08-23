@@ -1,0 +1,46 @@
+Dataset: BPI12_graph,
+Model: GraphTransformer
+
+params={'seed': 41, 'epochs': 1000, 'batch_size': 128, 'num_nodes': 5, 'init_lr': 0.0007, 'lr_reduce_factor': 0.5, 'lr_schedule_patience': 15, 'min_lr': 1e-06, 'weight_decay': 0.0, 'print_epoch_interval': 5, 'max_time': 24}
+
+net_params={'L': 10, 'n_heads': 8, 'hidden_dim': 64, 'out_dim': 64, 'edge_feat': False, 'residual': True, 'readout': 'mean', 'in_feat_dropout': 0.0, 'dropout': 0.0, 'layer_norm': False, 'batch_norm': True, 'self_loop': False, 'lap_pos_enc': True, 'pos_enc_dim': 4, 'wl_pos_enc': False, 'full_graph': False, 'device': device(type='cpu'), 'gpu_id': 0, 'batch_size': 128, 'num_nodes_types': 25, 'in_dim': 3, 'n_classes': 25, 'total_param': 336601}
+
+GraphTransformerNet(
+  (embedding_lap_pos_enc): Linear(in_features=4, out_features=64, bias=True)
+  (embedding_h): Embedding(3, 64)
+  (linear): Linear(in_features=3, out_features=64, bias=True)
+  (in_feat_dropout): Dropout(p=0.0, inplace=False)
+  (layers): ModuleList(
+    (0): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (1): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (2): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (3): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (4): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (5): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (6): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (7): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (8): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+    (9): GraphTransformerLayer(in_channels=64, out_channels=64, heads=8, residual=True)
+  )
+  (MLP_layer): MLPReadout(
+    (FC_layers): ModuleList(
+      (0): Linear(in_features=64, out_features=32, bias=True)
+      (1): Linear(in_features=32, out_features=16, bias=True)
+      (2): Linear(in_features=16, out_features=25, bias=True)
+    )
+  )
+)
+
+Total Parameters: 336601
+
+
+    FINAL RESULTS
+TEST ACCURACY: 231.0000
+TRAIN ACCURACY: 182.8065
+
+
+    Convergence Time (Epochs): 0.0000
+Total Time Taken: 0.0720 hrs
+Average Time Per Epoch: nan s
+
+
