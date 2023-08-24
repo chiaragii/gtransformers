@@ -9,6 +9,7 @@ import csv
 
 import dgl
 
+from sklearn.model_selection import train_test_split
 from scipy import sparse as sp
 import numpy as np
 import networkx as nx
@@ -294,6 +295,7 @@ class GraphsDataset(torch.utils.data.Dataset):
         print("Creating graph dataset...")
         self.name = name
         self.train = GraphsDGL('data/graphs/training.g', self.num_nodes)
+        #X_train, X_test, Y_train, Y_test = train_test_split(self.train.graph_lists, self.train.graph_labels, test_size=30, train_size=70)
         self.test = GraphsDGL('data/graphs/test.g', self.num_nodes)
         self.val = GraphsDGL('data/graphs/val.g', self.num_nodes)
         print('train, test, val sizes :', len(self.train), len(self.test), len(self.val))
