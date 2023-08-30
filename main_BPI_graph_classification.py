@@ -231,6 +231,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
         print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
 
+        # Plot Accuracy
         plt.figure(figsize=(10, 6))
         plt.plot(epoch_count, epoch_train_accs, label='Train accuracy')
         plt.plot(epoch_count, epoch_test_accs, label='Test accuracy')
