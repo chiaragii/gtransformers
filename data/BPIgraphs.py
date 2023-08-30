@@ -117,9 +117,9 @@ class GraphsDGL(torch.utils.data.Dataset):
             #index = labels.index(label)
             #hot[index] = hot[index] + 1
             # tensor = torch.tensor(hot)
-            label_dict = dict(zip(labels,indices))
+            self.label_dict = dict(zip(labels,indices))
             for label in label_list:
-                label_value = label_dict[label]
+                label_value = self.label_dict[label]
                 self.graph_labels.append(torch.tensor(label_value))
 
     def __len__(self):
@@ -156,6 +156,7 @@ class GraphDatasetDGL(torch.utils.data.Dataset):
         self.val = GraphsDGL(data_dir, 'val', num_graphs=1000)
         self.test = GraphsDGL(data_dir, 'test', num_graphs=1000)
         print("Time taken: {:.4f}s".format(time.time() - t0))
+
 
 
 def self_loop(g):
@@ -301,6 +302,14 @@ class GraphsDataset(torch.utils.data.Dataset):
         print('train, test, val sizes :', len(self.train), len(self.test), len(self.val))
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time() - start))
+
+    def check_class_imbalance(self, num_classes):
+        label_count = [0] * num_classes
+        for label in self.train.graph_labels:
+            label_index = int(label)
+            label_count[label_index] = label_count[label_index]+1
+        return label_count
+
 
 
     def collate(self, samples):

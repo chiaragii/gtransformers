@@ -75,6 +75,11 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
     DATASET_NAME = dataset.name
 
+    label_count = dataset.check_class_imbalance(net_params['n_classes'])
+    class_proportions = [round(x / sum(label_count), 10) for x in label_count]
+    label_proportions = dict(zip(dataset.train.label_dict.keys(), class_proportions))
+
+
     if net_params['lap_pos_enc']:
         st = time.time()
         print("[!] Adding Laplacian positional encoding.")
@@ -128,9 +133,10 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
     epoch_train_losses, epoch_val_losses = [], []
     epoch_train_accs, epoch_val_accs = [], []
+    epoch_train_f1s, epoch_val_f1s = [], []
 
     # import train and evaluate functions
-    from train.train_SBMs_node_classification import train_epoch, evaluate_network
+    from train.train_BPI_graph_classification import train_epoch, evaluate_network
 
     train_loader = DataLoader(trainset, batch_size=params['batch_size'], shuffle=True, collate_fn=dataset.collate)
     val_loader = DataLoader(valset, batch_size=params['batch_size'], shuffle=False, collate_fn=dataset.collate)
@@ -145,28 +151,34 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_acc, optimizer = train_epoch(model, optimizer, device, train_loader,
+                epoch_train_loss, epoch_train_acc, epoch_train_f1, optimizer = train_epoch(model, optimizer, device, train_loader,
                                                                            epoch)
 
-                epoch_val_loss, epoch_val_acc = evaluate_network(model, device, val_loader, epoch)
-                _, epoch_test_acc = evaluate_network(model, device, test_loader, epoch)
+                epoch_val_loss, epoch_val_acc, epoch_val_f1 = evaluate_network(model, device, val_loader, epoch)
+                _, epoch_test_acc, epoch_test_f1 = evaluate_network(model, device, test_loader, epoch)
 
                 epoch_train_losses.append(epoch_train_loss)
                 epoch_val_losses.append(epoch_val_loss)
                 epoch_train_accs.append(epoch_train_acc)
                 epoch_val_accs.append(epoch_val_acc)
+                epoch_train_f1s.append(epoch_train_f1)
+                epoch_val_f1s.append(epoch_val_f1)
 
                 writer.add_scalar('train/_loss', epoch_train_loss, epoch)
                 writer.add_scalar('val/_loss', epoch_val_loss, epoch)
                 writer.add_scalar('train/_acc', epoch_train_acc, epoch)
                 writer.add_scalar('val/_acc', epoch_val_acc, epoch)
                 writer.add_scalar('test/_acc', epoch_test_acc, epoch)
+                writer.add_scalar('train/_f1', epoch_train_f1, epoch)
+                writer.add_scalar('val/_f1', epoch_val_f1, epoch)
+                writer.add_scalar('test/_f1', epoch_test_f1, epoch)
                 writer.add_scalar('learning_rate', optimizer.param_groups[0]['lr'], epoch)
 
                 t.set_postfix(time=time.time() - start, lr=optimizer.param_groups[0]['lr'],
                               train_loss=epoch_train_loss, val_loss=epoch_val_loss,
                               train_acc=epoch_train_acc, val_acc=epoch_val_acc,
-                              test_acc=epoch_test_acc)
+                              test_acc=epoch_test_acc, train_f1=epoch_train_f1,
+                              val_f1=epoch_val_f1, test_f1=epoch_test_f1)
 
                 per_epoch_time.append(time.time() - start)
 
@@ -199,10 +211,12 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('-' * 89)
         print('Exiting from training early because of KeyboardInterrupt')
 
-    _, test_acc = evaluate_network(model, device, test_loader, epoch)
-    _, train_acc = evaluate_network(model, device, train_loader, epoch)
+    _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
+    _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
     print("Test Accuracy: {:.4f}".format(test_acc))
     print("Train Accuracy: {:.4f}".format(train_acc))
+    print("Test F1-score: {:.4f}".format(test_f1))
+    print("Train F1-score: {:.4f}".format(train_f1))
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
@@ -213,11 +227,19 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         Write the results in out_dir/results folder
     """
     with open(write_file_name + '.txt', 'w') as f:
-        f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n
-    FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\n\n
-    Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""\
-          .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param'],
-                  test_acc, train_acc, epoch, (time.time()-t0)/3600, np.mean(per_epoch_time)))
+        f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n"""
+          .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
+        f.write("""Class probabilities: \n""")
+        for i in label_proportions:
+            f.write("""{}: {}""".format(i[0], i[1]))
+        f.write("""Training graphs: {}\n Test graphs: {} \n Validation graphs: {}\n""".format(len(trainset),
+                                                                                              len(testset),
+                                                                                              len(valset)))
+        f.write("""FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
+        \nTRAIN F1-SCORE: {:.4f}\n\n
+    Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
+        .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time()-t0)/3600, np.mean(per_epoch_time)))
+
 
 
 def main():
@@ -341,7 +363,7 @@ def main():
     net_params['num_nodes_types'] = dataset.num_nodes_types
 
     net_params['in_dim'] = dataset.train[0][0].ndata['feat'][0].size(0)  # node_dim (feat is an integer)
-    net_params['n_classes'] = 25
+    net_params['n_classes'] = 24
     # net_params['num_bond_type'] = dataset.num_bond_type
 
     root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(

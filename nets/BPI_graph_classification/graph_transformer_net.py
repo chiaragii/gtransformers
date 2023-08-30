@@ -49,6 +49,7 @@ class GraphTransformerNet(nn.Module):
         
         self.layers = nn.ModuleList([GraphTransformerLayer(hidden_dim, hidden_dim, num_heads,
                                               dropout, self.layer_norm, self.batch_norm, self.residual) for _ in range(n_layers-1)])
+
         self.layers.append(GraphTransformerLayer(hidden_dim, out_dim, num_heads, dropout, self.layer_norm, self.batch_norm,  self.residual))
         self.MLP_layer = MLPReadout(out_dim, n_classes)
 
@@ -70,7 +71,6 @@ class GraphTransformerNet(nn.Module):
         # GraphTransformer Layers
         for conv in self.layers:
             h = conv(g, h)
-            #prova = conv(g, prova)
 
         g.ndata['h'] = h
 
@@ -85,7 +85,6 @@ class GraphTransformerNet(nn.Module):
 
         # output
         h_out = self.MLP_layer(hg)
-        #h_out = self.MLP_layer(prova)
 
         return h_out
     
