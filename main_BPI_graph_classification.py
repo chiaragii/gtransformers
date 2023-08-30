@@ -16,6 +16,8 @@ from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import matplotlib.pyplot as plt
+
 
 class DotDict(dict):
     def __init__(self, **kwds):
@@ -131,9 +133,11 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                                                      patience=params['lr_schedule_patience'],
                                                      verbose=True)
 
-    epoch_train_losses, epoch_val_losses = [], []
-    epoch_train_accs, epoch_val_accs = [], []
-    epoch_train_f1s, epoch_val_f1s = [], []
+    epoch_train_losses, epoch_val_losses, epoch_test_losses = [], [], []
+    epoch_train_accs, epoch_val_accs, epoch_test_accs = [], [], []
+    epoch_train_f1s, epoch_val_f1s, epoch_test_f1s = [], [], []
+    epoch_count = []
+    first_epoch = 0
 
     # import train and evaluate functions
     from train.train_BPI_graph_classification import train_epoch, evaluate_network
@@ -155,14 +159,20 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                                                                            epoch)
 
                 epoch_val_loss, epoch_val_acc, epoch_val_f1 = evaluate_network(model, device, val_loader, epoch)
-                _, epoch_test_acc, epoch_test_f1 = evaluate_network(model, device, test_loader, epoch)
+                epoch_test_loss, epoch_test_acc, epoch_test_f1 = evaluate_network(model, device, test_loader, epoch)
 
                 epoch_train_losses.append(epoch_train_loss)
                 epoch_val_losses.append(epoch_val_loss)
+                epoch_test_losses.append(epoch_test_loss)
                 epoch_train_accs.append(epoch_train_acc)
                 epoch_val_accs.append(epoch_val_acc)
+                epoch_test_accs.append(epoch_test_acc)
                 epoch_train_f1s.append(epoch_train_f1)
                 epoch_val_f1s.append(epoch_val_f1)
+                epoch_test_f1s.append(epoch_test_f1)
+
+                epoch_count.append(first_epoch)
+                first_epoch += 1
 
                 writer.add_scalar('train/_loss', epoch_train_loss, epoch)
                 writer.add_scalar('val/_loss', epoch_val_loss, epoch)
@@ -211,6 +221,46 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         print('-' * 89)
         print('Exiting from training early because of KeyboardInterrupt')
 
+        _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
+        _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
+        print("Test Accuracy: {:.4f}".format(test_acc))
+        print("Train Accuracy: {:.4f}".format(train_acc))
+        print("Test F1-score: {:.4f}".format(test_f1))
+        print("Train F1-score: {:.4f}".format(train_f1))
+        print("Convergence Time (Epochs): {:.4f}".format(epoch))
+        print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
+        print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(epoch_count, epoch_train_accs, label='Train accuracy')
+        plt.plot(epoch_count, epoch_test_accs, label='Test accuracy')
+        plt.title('Training and Test Accuracy')
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')
+        plt.xticks(epoch)
+
+        plt.show()
+
+        writer.close()
+
+        """
+            Write the results in out_dir/results folder
+        """
+        with open(write_file_name + '.txt', 'w') as f:
+            f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n"""
+                    .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
+            f.write("""Class probabilities: \n""")
+            for i in label_proportions:
+                f.write("""{}: {}""".format(i[0], i[1]))
+            f.write("""Training graphs: {}\n Test graphs: {} \n Validation graphs: {}\n""".format(len(trainset),
+                                                                                                  len(testset),
+                                                                                                  len(valset)))
+            f.write("""FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
+                \nTRAIN F1-SCORE: {:.4f}\n\n
+            Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
+                    .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time() - t0) / 3600,
+                            np.mean(per_epoch_time)))
+
     _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
     _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
     print("Test Accuracy: {:.4f}".format(test_acc))
@@ -220,6 +270,16 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(epoch_count, epoch_train_accs, label='Train accuracy')
+    plt.plot(epoch_count, epoch_test_accs, label='Test accuracy')
+    plt.title('Training and Test Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.xticks(epoch)
+
+    plt.show()
 
     writer.close()
 
