@@ -225,7 +225,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
             except Exception:
                 break
 
-
     _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
     _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
     print("Test Accuracy: {:.4f}".format(test_acc))
@@ -236,14 +235,23 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(epoch_count, epoch_train_accs, label='Train accuracy')
-    plt.plot(epoch_count, epoch_test_accs, label='Test accuracy')
-    plt.title('Training and Test Accuracy')
+    plt.subplot(2, 1, 1)
+    plt.plot(epoch_count, epoch_train_accs, label='train acc')
+    plt.plot(epoch_count, epoch_test_accs, label='test acc')
+    plt.legend(loc='best')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
-    plt.xticks(epoch)
+    plt.title('Training and Test Accuracy')
 
+    plt.subplot(2, 1, 2)
+    plt.plot(epoch_count, epoch_train_f1s, label='train f1')
+    plt.plot(epoch_count, epoch_test_f1s, label='test f1')
+    plt.legend(loc='best')
+    plt.xlabel('Epochs')
+    plt.ylabel('F1')
+    plt.title('Training and Test f1')
+
+    plt.tight_layout()
     plt.show()
 
     writer.close()
