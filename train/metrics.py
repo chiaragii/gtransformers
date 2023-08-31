@@ -14,7 +14,7 @@ def MAE(scores, targets):
 
 def accuracy_TU(scores, targets):
     scores = scores.detach().argmax(dim=1)
-    acc = (scores == targets).float().sum().item()
+    acc = (scores == torch.flatten(targets)).float().sum().item()
     return acc
 
 
@@ -70,3 +70,4 @@ def accuracy_VOC(scores, targets):
     targets = targets.cpu().detach().numpy()
     acc = f1_score(scores, targets, average='weighted', labels=np.unique(targets))
     return acc
+

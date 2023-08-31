@@ -225,6 +225,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
             except Exception:
                 break
 
+
     _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
     _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
     print("Test Accuracy: {:.4f}".format(test_acc))
@@ -234,25 +235,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(epoch_count, epoch_train_accs, label='train acc')
-    plt.plot(epoch_count, epoch_test_accs, label='test acc')
-    plt.legend(loc='best')
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.title('Training and Test Accuracy')
-
-    plt.subplot(2, 1, 2)
-    plt.plot(epoch_count, epoch_train_f1s, label='train f1')
-    plt.plot(epoch_count, epoch_test_f1s, label='test f1')
-    plt.legend(loc='best')
-    plt.xlabel('Epochs')
-    plt.ylabel('F1')
-    plt.title('Training and Test f1')
-
-    plt.tight_layout()
-    plt.show()
 
     writer.close()
 
@@ -268,10 +250,29 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         f.write("""\n\n\nTraining graphs: {}\nTest graphs: {} \nValidation graphs: {}\n""".format(len(trainset),
                                                                                                     len(testset),
                                                                                                     len(valset)))
-        f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
-        \nTRAIN F1-SCORE: {:.4f}\n\nConvergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
-                .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time() - t0) / 3600,
+        f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}%\nTRAIN ACCURACY: {:.4f}%\nTEST F1-SCORE: {:.4f}%\nTRAIN F1-SCORE: {:.4f}%
+        \n\nConvergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nNum Epochs: {}\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
+                .format(np.mean(np.array(test_acc)), np.mean(np.array(train_acc)), np.mean(np.array(test_f1)), np.mean(np.array(train_f1)), epoch, (time.time() - t0) / 3600, first_epoch,
                         np.mean(per_epoch_time)))
+
+        plt.subplot(2, 1, 1)
+        plt.plot(epoch_count, epoch_train_accs, label='train acc')
+        plt.plot(epoch_count, epoch_test_accs, label='test acc')
+        plt.legend(loc='best')
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')
+        plt.title('Training and Test Accuracy')
+
+        plt.subplot(2, 1, 2)
+        plt.plot(epoch_count, epoch_train_f1s, label='train f1')
+        plt.plot(epoch_count, epoch_test_f1s, label='test f1')
+        plt.legend(loc='best')
+        plt.xlabel('Epochs')
+        plt.ylabel('F1')
+        plt.title('Training and Test f1')
+
+        plt.tight_layout()
+        plt.show()
 
 
 def main():
