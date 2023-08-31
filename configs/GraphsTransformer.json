@@ -13,11 +13,11 @@
         "seed": 41,
         "epochs": 1000,
         "batch_size": 256,
-        "num_nodes": 10,
+        "num_nodes": 25,
         "init_lr": 0.0007,
         "lr_reduce_factor": 0.5,
         "lr_schedule_patience": 15,
-        "min_lr": 1e-6,
+        "min_lr": 1e-5,
         "weight_decay": 0.0,
         "print_epoch_interval": 5,
         "max_time": 24
@@ -25,9 +25,9 @@
 
     "net_params": {
         "L": 10,
-        "n_heads": 4,
-        "hidden_dim": 16,
-        "out_dim": 16,
+        "n_heads": 8,
+        "hidden_dim": 32,
+        "out_dim": 32,
         "edge_feat": false,
         "residual": true,
         "readout": "mean",
@@ -37,7 +37,7 @@
         "batch_norm": true,
         "self_loop": false,
         "lap_pos_enc": true,
-        "pos_enc_dim": 8,
+        "pos_enc_dim": 20,
         "wl_pos_enc": false,
         "full_graph": false
     }

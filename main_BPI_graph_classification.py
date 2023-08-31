@@ -81,7 +81,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     class_proportions = [round(x / sum(label_count), 10) for x in label_count]
     label_proportions = dict(zip(dataset.train.label_dict.keys(), class_proportions))
 
-
     if net_params['lap_pos_enc']:
         st = time.time()
         print("[!] Adding Laplacian positional encoding.")
@@ -147,16 +146,17 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     test_loader = DataLoader(testset, batch_size=params['batch_size'], shuffle=False, collate_fn=dataset.collate)
 
     # At any point you can hit Ctrl + C to break out of training early.
-    try:
-        with tqdm(range(params['epochs'])) as t:
-            for epoch in t:
+    with tqdm(range(params['epochs'])) as t:
+        for epoch in t:
+            try:
 
                 t.set_description('Epoch %d' % epoch)
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_acc, epoch_train_f1, optimizer = train_epoch(model, optimizer, device, train_loader,
-                                                                           epoch)
+                epoch_train_loss, epoch_train_acc, epoch_train_f1, optimizer = train_epoch(model, optimizer, device,
+                                                                                           train_loader,
+                                                                                           epoch)
 
                 epoch_val_loss, epoch_val_acc, epoch_val_f1 = evaluate_network(model, device, val_loader, epoch)
                 epoch_test_loss, epoch_test_acc, epoch_test_f1 = evaluate_network(model, device, test_loader, epoch)
@@ -217,50 +217,14 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                     print("Max_time for training elapsed {:.2f} hours, so stopping".format(params['max_time']))
                     break
 
-    except KeyboardInterrupt:
-        print('-' * 89)
-        print('Exiting from training early because of KeyboardInterrupt')
+            except KeyboardInterrupt:
+                print('-' * 89)
+                print('Exiting from training early because of KeyboardInterrupt')
+                break
 
-        _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
-        _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
-        print("Test Accuracy: {:.4f}".format(test_acc))
-        print("Train Accuracy: {:.4f}".format(train_acc))
-        print("Test F1-score: {:.4f}".format(test_f1))
-        print("Train F1-score: {:.4f}".format(train_f1))
-        print("Convergence Time (Epochs): {:.4f}".format(epoch))
-        print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
-        print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
+            except Exception:
+                break
 
-        # Plot Accuracy
-        plt.figure(figsize=(10, 6))
-        plt.plot(epoch_count, epoch_train_accs, label='Train accuracy')
-        plt.plot(epoch_count, epoch_test_accs, label='Test accuracy')
-        plt.title('Training and Test Accuracy')
-        plt.xlabel('Epochs')
-        plt.ylabel('Accuracy')
-        plt.xticks(epoch)
-
-        plt.show()
-
-        writer.close()
-
-        """
-            Write the results in out_dir/results folder
-        """
-        with open(write_file_name + '.txt', 'w') as f:
-            f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n"""
-                    .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
-            f.write("""Class probabilities: \n""")
-            for i in label_proportions:
-                f.write("""{}: {}""".format(i[0], i[1]))
-            f.write("""Training graphs: {}\n Test graphs: {} \n Validation graphs: {}\n""".format(len(trainset),
-                                                                                                  len(testset),
-                                                                                                  len(valset)))
-            f.write("""FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
-                \nTRAIN F1-SCORE: {:.4f}\n\n
-            Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
-                    .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time() - t0) / 3600,
-                            np.mean(per_epoch_time)))
 
     _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
     _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
@@ -289,18 +253,17 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     """
     with open(write_file_name + '.txt', 'w') as f:
         f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n"""
-          .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
-        f.write("""Class probabilities: \n""")
+                .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
+        f.write("""Class probabilities:\n""")
         for i in label_proportions:
-            f.write("""{}: {}""".format(i[0], i[1]))
-        f.write("""Training graphs: {}\n Test graphs: {} \n Validation graphs: {}\n""".format(len(trainset),
-                                                                                              len(testset),
-                                                                                              len(valset)))
-        f.write("""FINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
-        \nTRAIN F1-SCORE: {:.4f}\n\n
-    Convergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
-        .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time()-t0)/3600, np.mean(per_epoch_time)))
-
+            f.write("""{}: {}\n""".format(i, label_proportions[i]))
+        f.write("""\n\n\nTraining graphs: {}\nTest graphs: {} \nValidation graphs: {}\n""".format(len(trainset),
+                                                                                                    len(testset),
+                                                                                                    len(valset)))
+        f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}\nTRAIN ACCURACY: {:.4f}\nTEST F1-SCORE: {:.4f}
+        \nTRAIN F1-SCORE: {:.4f}\n\nConvergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
+                .format(test_acc, train_acc, test_f1, train_f1, epoch, (time.time() - t0) / 3600,
+                        np.mean(per_epoch_time)))
 
 
 def main():

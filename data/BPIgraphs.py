@@ -284,7 +284,7 @@ class GraphsDataset(torch.utils.data.Dataset):
 
         start = time.time()
         self.num_nodes = num_nodes
-        self.num_nodes_types = 25
+        self.num_nodes_types = 24
 
         print("Creating graph dataset...")
         self.name = name
