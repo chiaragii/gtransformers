@@ -105,13 +105,13 @@ class GraphsDGL(torch.utils.data.Dataset):
                 indices.append(lines)
                 lines = lines + 1
                 labels.append(line.strip('\n'))
-        # for label in label_list:
+            # for label in label_list:
             # for one hot encoding
             # hot = [0] * len(labels)
             # index = labels.index(label)
             # hot[index] = hot[index] + 1
             # tensor = torch.tensor(hot)
-            self.label_dict = dict(zip(labels,indices))
+            self.label_dict = dict(zip(labels, indices))
             for label in label_list:
                 label_value = self.label_dict[label]
                 self.graph_labels.append(torch.tensor(label_value))
@@ -150,7 +150,6 @@ class GraphDatasetDGL(torch.utils.data.Dataset):
         self.val = GraphsDGL(data_dir, 'val', num_graphs=1000)
         self.test = GraphsDGL(data_dir, 'test', num_graphs=1000)
         print("Time taken: {:.4f}s".format(time.time() - t0))
-
 
 
 def self_loop(g):
@@ -281,7 +280,6 @@ def wl_positional_encoding(g):
 class GraphsDataset(torch.utils.data.Dataset):
 
     def __init__(self, name, num_nodes):
-
         start = time.time()
         self.num_nodes = num_nodes
         self.num_nodes_types = 24
@@ -289,7 +287,6 @@ class GraphsDataset(torch.utils.data.Dataset):
         print("Creating graph dataset...")
         self.name = name
         self.train = GraphsDGL('data/graphs/training.g', self.num_nodes)
-        # X_train, X_test, Y_train, Y_test = train_test_split(self.train.graph_lists, self.train.graph_labels, test_size=30, train_size=70)
         self.test = GraphsDGL('data/graphs/test.g', self.num_nodes)
         self.val = GraphsDGL('data/graphs/val.g', self.num_nodes)
         print('train, test, val sizes :', len(self.train), len(self.test), len(self.val))
@@ -300,24 +297,16 @@ class GraphsDataset(torch.utils.data.Dataset):
         label_count = [0] * num_classes
         for label in self.train.graph_labels:
             label_index = int(label)
-            label_count[label_index] = label_count[label_index]+1
+            label_count[label_index] = label_count[label_index] + 1
         return label_count
-
-
 
     def collate(self, samples):
         graphs, labels = map(list, zip(*samples))
-        # for one hot encoding
-        # lab = []
-        # for i in labels:
-        #    lab.append(np.array(i))
-        # labels = torch.tensor(lab)
         labels = torch.tensor(labels).unsqueeze(1)
         batched_graph = dgl.batch(graphs)
         return batched_graph, labels
 
     def _add_self_loops(self):
-
         # function for adding self loops
         # this function will be called only if self_loop flag is True
         self.train.graph_lists = [self_loop(g) for g in self.train.graph_lists]
@@ -325,7 +314,6 @@ class GraphsDataset(torch.utils.data.Dataset):
         self.test.graph_lists = [self_loop(g) for g in self.test.graph_lists]
 
     def _make_full_graph(self):
-
         # function for converting graphs to full graphs
         # this function will be called only if full_graph flag is True
         self.train.graph_lists = [make_full_graph(g) for g in self.train.graph_lists]
@@ -333,14 +321,12 @@ class GraphsDataset(torch.utils.data.Dataset):
         self.test.graph_lists = [make_full_graph(g) for g in self.test.graph_lists]
 
     def _add_laplacian_positional_encodings(self, pos_enc_dim):
-
         # Graph positional encoding v/ Laplacian eigenvectors
         self.train.graph_lists = [laplacian_positional_encoding(g, pos_enc_dim) for g in self.train.graph_lists]
         self.val.graph_lists = [laplacian_positional_encoding(g, pos_enc_dim) for g in self.val.graph_lists]
         self.test.graph_lists = [laplacian_positional_encoding(g, pos_enc_dim) for g in self.test.graph_lists]
 
     def _add_wl_positional_encodings(self):
-
         # WL positional encoding from Graph-Bert, Zhang et al 2020.
         self.train.graph_lists = [wl_positional_encoding(g) for g in self.train.graph_lists]
         self.val.graph_lists = [wl_positional_encoding(g) for g in self.val.graph_lists]
