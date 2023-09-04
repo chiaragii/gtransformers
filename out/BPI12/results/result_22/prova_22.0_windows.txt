@@ -1,0 +1,81 @@
+Dataset: BPI12_graph,
+Model: GraphTransformer
+
+params={'seed': 41, 'epochs': 1000, 'batch_size': 128, 'num_nodes': 16, 'init_lr': 0.0007, 'lr_reduce_factor': 0.5, 'lr_schedule_patience': 15, 'min_lr': 1e-05, 'weight_decay': 0.0, 'print_epoch_interval': 5, 'max_time': 24}
+
+net_params={'L': 10, 'n_heads': 4, 'hidden_dim': 32, 'out_dim': 32, 'edge_feat': False, 'residual': True, 'readout': 'mean', 'in_feat_dropout': 0.0, 'dropout': 0.0, 'layer_norm': False, 'batch_norm': True, 'self_loop': False, 'lap_pos_enc': True, 'pos_enc_dim': 15, 'wl_pos_enc': False, 'full_graph': False, 'device': device(type='cpu'), 'gpu_id': 0, 'batch_size': 128, 'num_nodes_types': 24, 'in_dim': 3, 'n_classes': 24, 'total_param': 86096}
+
+GraphTransformerNet(
+  (embedding_lap_pos_enc): Linear(in_features=15, out_features=32, bias=True)
+  (embedding_h): Embedding(3, 32)
+  (linear): Linear(in_features=3, out_features=32, bias=True)
+  (in_feat_dropout): Dropout(p=0.0, inplace=False)
+  (layers): ModuleList(
+    (0): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (1): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (2): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (3): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (4): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (5): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (6): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (7): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (8): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+    (9): GraphTransformerLayer(in_channels=32, out_channels=32, heads=4, residual=True)
+  )
+  (MLP_layer): MLPReadout(
+    (FC_layers): ModuleList(
+      (0): Linear(in_features=32, out_features=16, bias=True)
+      (1): Linear(in_features=16, out_features=8, bias=True)
+      (2): Linear(in_features=8, out_features=24, bias=True)
+    )
+  )
+)
+
+Total Parameters: 86096
+
+Class probabilities:
+ASUBMITTED: 0.0
+APARTLYSUBMITTED: 0.0
+APREACCEPTED: 0.0
+AACCEPTED: 0.0010251153
+OSELECTED: 0.0209847137
+AFINALIZED: 0.0019597793
+OCREATED: 0.0252057768
+OSENT: 0.0289745832
+WCompleterenaanvraag: 0.0309343625
+WNabellenoffertes: 0.2483794133
+OSENTBACK: 0.0291856363
+AREGISTERED: 0.0411553653
+AAPPROVED: 0.0401302499
+OACCEPTED: 0.0381101697
+AACTIVATED: 0.0421503301
+WValiderenaanvraag: 0.1299785932
+END: 0.0
+OCANCELLED: 0.0442005608
+ADECLINED: 0.0126330389
+ACANCELLED: 0.0300298489
+WAfhandelenleads: 0.0003015045
+ODECLINED: 0.0120300298
+WNabellenincompletedossiers: 0.2220580698
+WBeoordelenfraude: 0.0005728586
+
+
+
+Training graphs: 33167
+Test graphs: 12625 
+Validation graphs: 2861
+
+
+FINAL RESULTS
+TEST ACCURACY: 42.8515%
+TRAIN ACCURACY: 54.4336%
+TEST F1-SCORE: 50.1452%
+TRAIN F1-SCORE: 63.5586%
+        
+
+Convergence Time (Epochs): 147.0000
+Total Time Taken: 9.7094 hrs
+Num Epochs: 148
+Average Time Per Epoch: 233.8043 s
+
+
