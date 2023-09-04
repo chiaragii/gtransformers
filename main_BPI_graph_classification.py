@@ -396,7 +396,7 @@ def main():
     net_params['num_nodes_types'] = dataset.num_nodes_types
 
     net_params['in_dim'] = dataset.train[0][0].ndata['feat'][0].size(0)  # node_dim (feat is an integer)
-    net_params['n_classes'] = 24
+    net_params['n_classes'] = 23
     # net_params['num_bond_type'] = dataset.num_bond_type
 
     root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(
