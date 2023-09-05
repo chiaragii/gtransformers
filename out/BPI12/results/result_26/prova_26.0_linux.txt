@@ -3,7 +3,7 @@ Model: GraphTransformer
 
 params={'seed': 41, 'epochs': 1000, 'batch_size': 256, 'num_nodes': 6, 'init_lr': 0.0007, 'lr_reduce_factor': 0.5, 'lr_schedule_patience': 15, 'min_lr': 1e-05, 'weight_decay': 0.0, 'print_epoch_interval': 5, 'max_time': 24}
 
-net_params={'L': 10, 'n_heads': 8, 'hidden_dim': 32, 'out_dim': 32, 'edge_feat': False, 'residual': True, 'readout': 'mean', 'in_feat_dropout': 0.0, 'dropout': 0.0, 'layer_norm': False, 'batch_norm': True, 'self_loop': False, 'lap_pos_enc': True, 'pos_enc_dim': 5, 'wl_pos_enc': False, 'full_graph': False, 'device': device(type='cpu'), 'gpu_id': 0, 'batch_size': 256, 'num_nodes_types': 24, 'in_dim': 3, 'n_classes': 24, 'total_param': 85776}
+net_params={'L': 10, 'n_heads': 8, 'hidden_dim': 32, 'out_dim': 32, 'edge_feat': False, 'residual': True, 'readout': 'mean', 'in_feat_dropout': 0.0, 'dropout': 0.0, 'layer_norm': False, 'batch_norm': True, 'self_loop': False, 'lap_pos_enc': True, 'pos_enc_dim': 5, 'wl_pos_enc': False, 'full_graph': False, 'device': device(type='cpu'), 'gpu_id': 0, 'batch_size': 256, 'num_nodes_types': 24, 'in_dim': 3, 'n_classes': 23, 'total_param': 85776}
 
 GraphTransformerNet(
   (embedding_lap_pos_enc): Linear(in_features=5, out_features=32, bias=True)
@@ -50,7 +50,6 @@ AAPPROVED: 0.021323993
 OACCEPTED: 0.0212819615
 AACTIVATED: 0.021323993
 WValiderenaanvraag: 0.0726725044
-END: 0.0
 OCANCELLED: 0.0345499124
 ADECLINED: 0.0137443082
 ACANCELLED: 0.0247005254
