@@ -77,9 +77,27 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
     DATASET_NAME = dataset.name
 
-    label_count = dataset.check_class_imbalance(net_params['n_classes'])
-    class_proportions = [round(x / sum(label_count), 10) for x in label_count]
-    label_proportions = dict(zip(dataset.train.label_dict.keys(), class_proportions))
+    # label proportion in train
+    label_count_train = dataset.check_class_imbalance(dataset.train.graph_labels, net_params['n_classes'])
+    class_proportions_train = [round(x / sum(label_count_train), 10) for x in label_count_train]
+    label_proportions_train = dict(zip(dataset.train.label_dict.keys(), class_proportions_train))
+    actual_labels_train = dataset.train.label_dict
+    train_samples = dict(zip(actual_labels_train, label_count_train))
+
+    # label proportion in test
+    label_count_test = dataset.check_class_imbalance(dataset.test.graph_labels, net_params['n_classes'])
+    class_proportions_test = [round(x / sum(label_count_test), 10) for x in label_count_test]
+    label_proportions_test = dict(zip(dataset.test.label_dict.keys(), class_proportions_test))
+    actual_labels_test = dataset.test.label_dict
+    test_samples = dict(zip(actual_labels_test, label_count_test))
+
+    # label proportion in val
+    label_count_val = dataset.check_class_imbalance(dataset.val.graph_labels, net_params['n_classes'])
+    actual_labels_val = dataset.val.label_dict
+    val_samples = dict(zip(actual_labels_val, label_count_val))
+
+
+
 
     if net_params['lap_pos_enc']:
         st = time.time()
@@ -154,12 +172,16 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_acc, epoch_train_f1, optimizer = train_epoch(model, optimizer, device,
+                epoch_train_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, optimizer = train_epoch(model, optimizer, device,
                                                                                            train_loader,
-                                                                                           epoch)
+                                                                                           epoch, actual_labels_train)
 
-                epoch_val_loss, epoch_val_acc, epoch_val_f1 = evaluate_network(model, device, val_loader, epoch)
-                epoch_test_loss, epoch_test_acc, epoch_test_f1 = evaluate_network(model, device, test_loader, epoch)
+                epoch_val_loss, epoch_val_acc, epoch_val_f1, epoch_val_conf, f1_per_class_val, _ = evaluate_network(model,
+                                                                                                                 device, val_loader, epoch,
+                                                                                                                 actual_labels_val, val_samples)
+                epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class_test, _ = evaluate_network(model, device,
+                                                                                                                      test_loader, epoch,
+                                                                                                                      actual_labels_test, test_samples)
 
                 epoch_train_losses.append(epoch_train_loss)
                 epoch_val_losses.append(epoch_val_loss)
@@ -225,35 +247,75 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
             except Exception:
                 break
 
+    _, test_acc, test_f1, confusion_test, f1s_per_class_test, weighted_f1_test = evaluate_network(model, device, test_loader, epoch, actual_labels_test, test_samples)
+    _, train_acc, train_f1, confusion_train, f1s_per_class_train, weighted_f1_train = evaluate_network(model, device, train_loader, epoch, actual_labels_train, train_samples)
 
-    _, test_acc, test_f1 = evaluate_network(model, device, test_loader, epoch)
-    _, train_acc, train_f1 = evaluate_network(model, device, train_loader, epoch)
     print("Test Accuracy: {:.4f}".format(test_acc))
     print("Train Accuracy: {:.4f}".format(train_acc))
     print("Test F1-score: {:.4f}".format(test_f1))
     print("Train F1-score: {:.4f}".format(train_f1))
+    print("Weighted Test F1-score: {:.4f}".format(weighted_f1_test))
+    print("Weighted Train F1-score: {:.4f}".format(weighted_f1_train))
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
     print("TOTAL TIME TAKEN: {:.4f}s".format(time.time() - t0))
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
 
     writer.close()
+    #for i in range(0, 23):
+    #    confusion_test[i].insert(0, dataset.train.label_dict.keys())
+    #confusion_test.insert(0, dataset.train.label_dict.keys())
 
     """
         Write the results in out_dir/results folder
     """
     with open(write_file_name + '.txt', 'w') as f:
+
         f.write("""Dataset: {},\nModel: {}\n\nparams={}\n\nnet_params={}\n\n{}\n\nTotal Parameters: {}\n\n"""
                 .format(DATASET_NAME, MODEL_NAME, params, net_params, model, net_params['total_param']))
-        f.write("""Class probabilities:\n""")
-        for i in label_proportions:
-            f.write("""{}: {}\n""".format(i, label_proportions[i]))
+
         f.write("""\n\n\nTraining graphs: {}\nTest graphs: {} \nValidation graphs: {}\n""".format(len(trainset),
-                                                                                                    len(testset),
-                                                                                                    len(valset)))
+                                                                                                  len(testset),
+                                                                                                  len(valset)))
+
         f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}%\nTRAIN ACCURACY: {:.4f}%\nTEST F1-SCORE: {:.4f}%\nTRAIN F1-SCORE: {:.4f}%
         \n\nConvergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nNum Epochs: {}\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
-                .format(np.mean(np.array(test_acc)), np.mean(np.array(train_acc)), np.mean(np.array(test_f1)), np.mean(np.array(train_f1)), epoch, (time.time() - t0) / 3600, first_epoch,
+                .format(np.mean(np.array(test_acc)), np.mean(np.array(train_acc)), np.mean(np.array(test_f1)),
+                        np.mean(np.array(train_f1)), epoch, (time.time() - t0) / 3600, first_epoch,
                         np.mean(per_epoch_time)))
+
+        f.write("""Testset Confusion Matrix:\n""")
+        for row in confusion_test:
+            f.write(' '.join([str(a) for a in row]) + '\n')
+
+        f.write("""\nTest F1-scores per class: {}\n""".format(str(f1s_per_class_test)))
+
+        f.write("""\nWeighted Test F1-scores per class: {}\n""".format(str(weighted_f1_test)))
+
+        f.write("""Class distribution in testset:\n""")
+        for i in test_samples:
+            f.write("""{}: {}\n""".format(i, test_samples[i]))
+
+        f.write("""\nClass probabilities in testset:\n""")
+        for i in label_proportions_test:
+            f.write("""{}: {}\n""".format(i, label_proportions_test[i]))
+
+
+        f.write("""\nTrainset Confusion Matrix:\n""")
+        for row in confusion_train:
+            f.write(' '.join([str(a) for a in row]) + '\n')
+
+        f.write("""\nTrain F1-scores per class: {}\n""".format(str(f1s_per_class_train)))
+
+        f.write("""\nWeighted Train F1-scores per class: {}\n""".format(str(weighted_f1_train)))
+
+        f.write("""Class distributions in testset:\n""")
+        for i in train_samples:
+            f.write("""{}: {}\n""".format(i, train_samples[i]))
+
+        f.write("""\nClass probabilities in trainset:\n""")
+        for i in label_proportions_train:
+            f.write("""{}: {}\n""".format(i, label_proportions_train[i]))
+
 
         plt.subplot(2, 1, 1)
         plt.plot(epoch_count, epoch_train_accs, label='train acc')
@@ -393,10 +455,9 @@ def main():
     if args.wl_pos_enc is not None:
         net_params['wl_pos_enc'] = True if args.pos_enc == 'True' else False
 
-    net_params['num_nodes_types'] = dataset.num_nodes_types
-
     net_params['in_dim'] = dataset.train[0][0].ndata['feat'][0].size(0)  # node_dim (feat is an integer)
-    net_params['n_classes'] = 23
+    net_params['n_classes'] = len(dataset.train.label_dict.keys())
+
     # net_params['num_bond_type'] = dataset.num_bond_type
 
     root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(
@@ -416,6 +477,8 @@ def main():
         os.makedirs(out_dir + 'configs')
 
     net_params['total_param'] = view_model_param(MODEL_NAME, net_params)
+
+
     train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs)
 
 

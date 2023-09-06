@@ -5,13 +5,13 @@ locations = ["data/graphs/training.g", "data/graphs/test.g", "data/graphs/val.g"
 enriched_graphs = open('data/graphs/BPI12_graph.g', 'r').read()
 graphs = enriched_graphs.split('XP\n')
 graphs.remove('')
-percentage_train = 0.65
-percentage_test = 0.25
+percentage_train = 0.67
+percentage_val = 0.15
 number_train_graphs = int(len(graphs)*percentage_train)
-number_test_graphs = int(len(graphs)*percentage_test)
-number_val_graphs = len(graphs)-number_test_graphs-number_train_graphs
+number_test_graphs = len(graphs)-number_train_graphs
+number_val_graphs = int(len(graphs)*percentage_val)
 train = graphs[:number_train_graphs]
-test = graphs[number_train_graphs+1:number_train_graphs+number_test_graphs]
+test = graphs[-number_test_graphs:]
 val = graphs[-number_val_graphs:]
 split = [train, test, val]
 

@@ -3,19 +3,20 @@
     and evaluating one epoch
 """
 import torch
-
+import numpy as np
 from train.metrics import accuracy_TU as accuracy
 from train.metrics import accuracy_VOC as f1_score
+import math
 
 
-def train_epoch(model, optimizer, device, data_loader, epoch):
+def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels):
 
     model.train()
     epoch_loss = 0
     epoch_train_acc = 0
+    epoch_train_conf = 0
     epoch_train_f1 = 0
     nb_data = 0
-    gpu_mem = 0
     for iter, (batch_graphs, batch_labels) in enumerate(data_loader):
         batch_graphs = batch_graphs.to(device)
         batch_x = batch_graphs.ndata['feat'].to(device)  # num x feat
@@ -41,8 +42,11 @@ def train_epoch(model, optimizer, device, data_loader, epoch):
         loss.backward()
         optimizer.step()
         epoch_loss += loss.detach().item()
-        epoch_train_acc += accuracy(batch_scores, batch_labels)
-        epoch_train_f1 += f1_score(batch_scores, batch_labels)
+        acc, conf = accuracy(batch_scores, batch_labels, list(actual_labels.values()))
+        epoch_train_acc += acc
+        epoch_train_conf += conf
+        f1, _ = f1_score(batch_scores, batch_labels, list(actual_labels.values()))
+        epoch_train_f1 += f1
         nb_data += batch_labels.size(0)
     epoch_loss /= (iter + 1)
     epoch_train_acc /= nb_data
@@ -50,15 +54,16 @@ def train_epoch(model, optimizer, device, data_loader, epoch):
     epoch_train_f1 = epoch_train_f1*100
     epoch_train_acc = epoch_train_acc*100
 
-    return epoch_loss, epoch_train_acc, epoch_train_f1, optimizer
+    return epoch_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, optimizer
 
 
-def evaluate_network(model, device, data_loader, epoch):
+def evaluate_network(model, device, data_loader, epoch, actual_labels, class_proportions):
     
     model.eval()
     epoch_test_loss = 0
     epoch_test_acc = 0
     epoch_test_f1 = 0
+    epoch_test_conf = 0
     nb_data = 0
     with torch.no_grad():
         for iter, (batch_graphs, batch_labels) in enumerate(data_loader):
@@ -79,15 +84,34 @@ def evaluate_network(model, device, data_loader, epoch):
             batch_scores = model.forward(batch_graphs, batch_x, batch_e, batch_lap_pos_enc, batch_wl_pos_enc)
             loss = model.loss(batch_scores, torch.flatten(batch_labels))
             epoch_test_loss += loss.detach().item()
-            epoch_test_acc += accuracy(batch_scores, batch_labels)
-            epoch_test_f1 += f1_score(batch_scores, batch_labels)
+            acc, conf = accuracy(batch_scores, batch_labels, list(actual_labels.values()))
+            epoch_test_acc += acc
+            epoch_test_conf += conf
+            f1, _ = f1_score(batch_scores, batch_labels, list(actual_labels.values()))
+            epoch_test_f1 += f1
             nb_data += batch_labels.size(0)
         epoch_test_loss /= (iter + 1)
         epoch_test_acc /= nb_data
         epoch_test_f1 /= (iter + 1)
-        epoch_test_f1 = epoch_test_f1 * 100
+        epoch_test_f1 = epoch_test_f1*100
         epoch_test_acc = epoch_test_acc*100
 
-    return epoch_test_loss, epoch_test_acc, epoch_test_f1
+        tp = np.diag(epoch_test_conf)
+        fp = np.sum(epoch_test_conf, axis=0) - tp
+        fn = np.sum(epoch_test_conf, axis=1) - tp
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        f1_per_class = 2*precision*recall/(precision+recall)
+
+        acc = 0
+        for i in range (0,len(f1_per_class)):
+            if math.isnan(f1_per_class[i]):
+                acc += 0
+            else:
+                acc += f1_per_class[i]*list(class_proportions.values())[i]
+        weighted_f1 = acc/sum(list(class_proportions.values()))
+
+
+    return epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class, weighted_f1
 
 

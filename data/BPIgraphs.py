@@ -57,6 +57,7 @@ class GraphsDGL(torch.utils.data.Dataset):
                     subgraph.append(label)
                     self.subgraph_list.append(subgraph)
 
+
         self.n_samples = len(self.subgraph_list)
         self.graph_lists = []
         self.graph_labels = []
@@ -102,9 +103,10 @@ class GraphsDGL(torch.utils.data.Dataset):
         with open('data/graphs/attributi.txt', 'r') as f:
             for line in f:
                 # for one hot encoding
-                indices.append(lines)
-                lines = lines + 1
-                labels.append(line.strip('\n'))
+                if line.strip('\n') in set(label_list):
+                    indices.append(lines)
+                    lines = lines + 1
+                    labels.append(line.strip('\n'))
             # for label in label_list:
             # for one hot encoding
             # hot = [0] * len(labels)
@@ -282,7 +284,6 @@ class GraphsDataset(torch.utils.data.Dataset):
     def __init__(self, name, num_nodes):
         start = time.time()
         self.num_nodes = num_nodes
-        self.num_nodes_types = 24
 
         print("Creating graph dataset...")
         self.name = name
@@ -293,9 +294,9 @@ class GraphsDataset(torch.utils.data.Dataset):
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time() - start))
 
-    def check_class_imbalance(self, num_classes):
+    def check_class_imbalance(self, graph_labels, num_classes):
         label_count = [0] * num_classes
-        for label in self.train.graph_labels:
+        for label in graph_labels:
             label_index = int(label)
             label_count[label_index] = label_count[label_index] + 1
         return label_count

@@ -12,10 +12,11 @@ def MAE(scores, targets):
     return MAE
 
 
-def accuracy_TU(scores, targets):
+def accuracy_TU(scores, targets, label_dict):
     scores = scores.detach().argmax(dim=1)
+    confusion_m = confusion_matrix(np.array(torch.flatten(targets)), np.array(scores), label_dict)
     acc = (scores == torch.flatten(targets)).float().sum().item()
-    return acc
+    return acc, confusion_m
 
 
 def F1_measure(score, targets):
@@ -65,9 +66,10 @@ def binary_f1_score(scores, targets):
     return f1_score(y_true, y_pred, average='binary')
 
 
-def accuracy_VOC(scores, targets):
+def accuracy_VOC(scores, targets, label_dict):
     scores = scores.detach().argmax(dim=1).cpu()
     targets = targets.cpu().detach().numpy()
+    f1s = f1_score(np.array(scores), np.array(targets).flatten(), average=None,
+                                   labels=label_dict)
     acc = f1_score(scores, targets, average='weighted', labels=np.unique(targets))
-    return acc
-
+    return acc, f1s
