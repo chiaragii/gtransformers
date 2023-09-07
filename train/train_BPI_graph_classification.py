@@ -109,7 +109,7 @@ def evaluate_network(model, device, data_loader, epoch, actual_labels, class_pro
                 acc += 0
             else:
                 acc += f1_per_class[i]*list(class_proportions.values())[i]
-        weighted_f1 = acc/sum(list(class_proportions.values()))
+        weighted_f1 = (acc/sum(list(class_proportions.values())))*100
 
 
     return epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class, weighted_f1

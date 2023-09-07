@@ -258,9 +258,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     print("AVG TIME PER EPOCH: {:.4f}s".format(np.mean(per_epoch_time)))
 
     writer.close()
-    #for i in range(0, 23):
-    #    confusion_test[i].insert(0, dataset.train.label_dict.keys())
-    #confusion_test.insert(0, dataset.train.label_dict.keys())
 
     """
         Write the results in out_dir/results folder
@@ -280,6 +277,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                         np.mean(np.array(train_f1)), epoch, (time.time() - t0) / 3600, first_epoch,
                         np.mean(per_epoch_time)))
 
+        f.write('\n<------------------------------------- Test Results ------------------------------------->\n\n')
         f.write("""Testset Confusion Matrix:\n""")
         table = tabulate(confusion_test, tablefmt='grid')
         f.write(table + '\n')
@@ -290,25 +288,27 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nWeighted Test F1-scores per class: {}\n""".format(str(weighted_f1_test)))
+        f.write("""\n\nWeighted Test F1-scores per class: {:.4f}%\n""".format(str(weighted_f1_test)))
 
         f.write("""\nClass distribution in testset:\n""")
-        data = [(item, score) for item, score in test_samples]
+        data = [(i, test_samples[i]) for i in test_samples]
         table = tabulate(data, headers=["Class", "Class Distribution"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nClass probabilities in testset:\n""")
-        data = [(item, score) for item, score in label_proportions_test]
+        f.write("""\n\nClass probabilities in testset:\n""")
+        data = [(i, label_proportions_test[i]) for i in label_proportions_test]
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nLabels deleted in testset:\n""")
-        data = [(item, score) for item, score in deleted_labels_test]
+        f.write("""\n\nLabels deleted in testset:\n""")
+        data = [(i, deleted_labels_test[i]) for i in deleted_labels_test]
         table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
         f.write(table)
 
 
-        f.write("""\n\nTrainset Confusion Matrix:\n""")
+        f.write('\n\n<------------------------------------- Train Results ------------------------------------->\n\n')
+
+        f.write("""Trainset Confusion Matrix:\n""")
         table = tabulate(confusion_train, tablefmt='grid')
         f.write(table + '\n')
 
@@ -317,20 +317,20 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nWeighted Train F1-scores per class: {}\n""".format(str(weighted_f1_train)))
+        f.write("""\n\nWeighted Train F1-scores per class: {:.4f}%\n""".format(str(weighted_f1_train)))
 
-        f.write("""Class distributions in trainset:\n""")
-        data = [(item, score) for item, score in train_samples]
+        f.write("""\nClass distributions in trainset:\n""")
+        data = [(i, train_samples[i]) for i in train_samples]
         table = tabulate(data, headers=["Class", "Class Distribution"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nClass probabilities in trainset:\n""")
-        data = [(item, score) for item, score in label_proportions_train]
+        f.write("""\n\nClass probabilities in trainset:\n""")
+        data = [(i, label_proportions_train[i]) for i in label_proportions_train]
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nLabels deleted in trainset:\n""")
-        data = [(item, score) for item, score in deleted_labels_train]
+        f.write("""\n\nLabels deleted in trainset:\n""")
+        data = [(i, deleted_labels_train[i]) for i in deleted_labels_train]
         table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
         f.write(table)
 
