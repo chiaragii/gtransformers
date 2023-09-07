@@ -15,6 +15,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from collections import Counter
 
 import matplotlib.pyplot as plt
 
@@ -80,26 +81,20 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     DATASET_NAME = dataset.name
 
     # label proportion in train
-    label_count_train = dataset.check_class_imbalance(dataset.train.graph_labels, net_params['n_classes'])
-    class_proportions_train = [round(x / sum(label_count_train), 10) for x in label_count_train]
-    label_proportions_train = dict(zip(dataset.train.label_dict.keys(), class_proportions_train))
-    actual_labels_train = dataset.train.label_dict
-    train_samples = dict(zip(actual_labels_train, label_count_train))
+    label_proportions_train, actual_labels_train, train_samples, deleted_labels_train = \
+        dataset.check_class_imbalance(dataset.train.deleted_labels, dataset.train.label_dict,
+                                      dataset.train.graph_labels, net_params['n_classes'])
+
 
     # label proportion in test
-    label_count_test = dataset.check_class_imbalance(dataset.test.graph_labels, net_params['n_classes'])
-    class_proportions_test = [round(x / sum(label_count_test), 10) for x in label_count_test]
-    label_proportions_test = dict(zip(dataset.test.label_dict.keys(), class_proportions_test))
-    actual_labels_test = dataset.test.label_dict
-    test_samples = dict(zip(actual_labels_test, label_count_test))
+    label_proportions_test, actual_labels_test, test_samples, deleted_labels_test = \
+        dataset.check_class_imbalance(dataset.test.deleted_labels, dataset.test.label_dict,
+                                      dataset.test.graph_labels, net_params['n_classes'])
 
     # label proportion in val
-    label_count_val = dataset.check_class_imbalance(dataset.val.graph_labels, net_params['n_classes'])
-    actual_labels_val = dataset.val.label_dict
-    val_samples = dict(zip(actual_labels_val, label_count_val))
-
-
-
+    label_proportions_val, actual_labels_val, val_samples, deleted_labels_val = \
+        dataset.check_class_imbalance(dataset.val.deleted_labels, dataset.val.label_dict,
+                                      dataset.val.graph_labels, net_params['n_classes'])
 
     if net_params['lap_pos_enc']:
         st = time.time()
@@ -289,7 +284,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(confusion_test, tablefmt='grid')
         f.write(table + '\n')
 
-        f.write("""\nTest F1-scores per class: {}\n""".format(str(f1s_per_class_test)))
 
         f.write("""\n Test F1-score per class: \n""")
         data = [(item, score) for item, score in zip(actual_labels_test, f1s_per_class_test)]
@@ -308,7 +302,13 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\nTrainset Confusion Matrix:\n""")
+        f.write("""\nLabels deleted in testset:\n""")
+        data = [(item, score) for item, score in deleted_labels_test]
+        table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
+        f.write(table)
+
+
+        f.write("""\n\nTrainset Confusion Matrix:\n""")
         table = tabulate(confusion_train, tablefmt='grid')
         f.write(table + '\n')
 
@@ -327,6 +327,11 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         f.write("""\nClass probabilities in trainset:\n""")
         data = [(item, score) for item, score in label_proportions_train]
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
+        f.write(table)
+
+        f.write("""\nLabels deleted in trainset:\n""")
+        data = [(item, score) for item, score in deleted_labels_train]
+        table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
         f.write(table)
 
         plt.subplot(2, 1, 1)

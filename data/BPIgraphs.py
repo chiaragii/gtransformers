@@ -35,13 +35,18 @@ class GraphsDGL(torch.utils.data.Dataset):
             graphs_dict = {}
 
         self.subgraph_list = []
-
+        self.deleted_labels = []
         # creating subgraphs
         for i in self.data:
-            for j in range(0, len(i['nodes']) - 1):
+            for j in range(0, len(i['nodes'])):
                 subgraph = []
                 event_number = []
                 # only creating prefix graphs of len > num_nodes
+                if j <= self.num_nodes:
+                    if j==num_nodes-1:
+                        for k in range(0, j):
+                            deleted = i['nodes'][k + 1].split(' ')[3]
+                            self.deleted_labels.append(deleted)
                 if j >= self.num_nodes:
                     for k in range(0, j):
                         subgraph.append(i['nodes'][k])
@@ -56,6 +61,7 @@ class GraphsDGL(torch.utils.data.Dataset):
                                 subgraph.append(w)
                     subgraph.append(label)
                     self.subgraph_list.append(subgraph)
+
 
 
         self.n_samples = len(self.subgraph_list)
@@ -294,12 +300,22 @@ class GraphsDataset(torch.utils.data.Dataset):
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time() - start))
 
-    def check_class_imbalance(self, graph_labels, num_classes):
+    def check_class_imbalance(self, deleted_labels, label_dict, graph_labels, num_classes):
         label_count = [0] * num_classes
         for label in graph_labels:
             label_index = int(label)
             label_count[label_index] = label_count[label_index] + 1
-        return label_count
+        class_proportions = [round(x / sum(label_count), 10) for x in label_count]
+        label_proportions = dict(zip(label_dict.keys(), class_proportions))
+        samples = dict(zip(label_dict, label_count))
+        count_deleted = []
+        attr = []
+        with open('data/graphs/attributi.txt', 'r') as att:
+            for line in att:
+                count_deleted.append(deleted_labels.count(line.strip('\n')))
+                attr.append(line.strip('\n'))
+            deleted = dict(zip(attr, count_deleted))
+        return label_proportions, label_dict, samples, deleted
 
     def collate(self, samples):
         graphs, labels = map(list, zip(*samples))
