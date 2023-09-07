@@ -18,6 +18,8 @@ from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
+from tabulate import tabulate
+
 
 class DotDict(dict):
     def __init__(self, **kwds):
@@ -284,38 +286,48 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                         np.mean(per_epoch_time)))
 
         f.write("""Testset Confusion Matrix:\n""")
-        for row in confusion_test:
-            f.write(' '.join([str(a) for a in row]) + '\n')
+        table = tabulate(confusion_test, tablefmt='grid')
+        f.write(table + '\n')
 
         f.write("""\nTest F1-scores per class: {}\n""".format(str(f1s_per_class_test)))
 
+        f.write("""\n Test F1-score per class: \n""")
+        data = [(item, score) for item, score in zip(actual_labels_test, f1s_per_class_test)]
+        table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
+        f.write(table)
+
         f.write("""\nWeighted Test F1-scores per class: {}\n""".format(str(weighted_f1_test)))
 
-        f.write("""Class distribution in testset:\n""")
-        for i in test_samples:
-            f.write("""{}: {}\n""".format(i, test_samples[i]))
+        f.write("""\nClass distribution in testset:\n""")
+        data = [(item, score) for item, score in test_samples]
+        table = tabulate(data, headers=["Class", "Class Distribution"], tablefmt='grid')
+        f.write(table)
 
         f.write("""\nClass probabilities in testset:\n""")
-        for i in label_proportions_test:
-            f.write("""{}: {}\n""".format(i, label_proportions_test[i]))
-
+        data = [(item, score) for item, score in label_proportions_test]
+        table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
+        f.write(table)
 
         f.write("""\nTrainset Confusion Matrix:\n""")
-        for row in confusion_train:
-            f.write(' '.join([str(a) for a in row]) + '\n')
+        table = tabulate(confusion_train, tablefmt='grid')
+        f.write(table + '\n')
 
-        f.write("""\nTrain F1-scores per class: {}\n""".format(str(f1s_per_class_train)))
+        f.write("""\n Train F1-score per class: \n""")
+        data = [(item, score) for item, score in zip(actual_labels_train, f1s_per_class_train)]
+        table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
+        f.write(table)
 
         f.write("""\nWeighted Train F1-scores per class: {}\n""".format(str(weighted_f1_train)))
 
-        f.write("""Class distributions in testset:\n""")
-        for i in train_samples:
-            f.write("""{}: {}\n""".format(i, train_samples[i]))
+        f.write("""Class distributions in trainset:\n""")
+        data = [(item, score) for item, score in train_samples]
+        table = tabulate(data, headers=["Class", "Class Distribution"], tablefmt='grid')
+        f.write(table)
 
         f.write("""\nClass probabilities in trainset:\n""")
-        for i in label_proportions_train:
-            f.write("""{}: {}\n""".format(i, label_proportions_train[i]))
-
+        data = [(item, score) for item, score in label_proportions_train]
+        table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
+        f.write(table)
 
         plt.subplot(2, 1, 1)
         plt.plot(epoch_count, epoch_train_accs, label='train acc')
