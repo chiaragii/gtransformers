@@ -288,7 +288,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\n\nWeighted Test F1-scores per class: {:.4f}%\n""".format(str(weighted_f1_test)))
+        f.write("""\n\nWeighted Test F1-scores per class: {:.4f}%\n""".format(weighted_f1_test))
 
         f.write("""\nClass distribution in testset:\n""")
         data = [(i, test_samples[i]) for i in test_samples]
@@ -317,7 +317,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\n\nWeighted Train F1-scores per class: {:.4f}%\n""".format(str(weighted_f1_train)))
+        f.write("""\n\nWeighted Train F1-scores per class: {:.4f}%\n""".format(weighted_f1_train))
 
         f.write("""\nClass distributions in trainset:\n""")
         data = [(i, train_samples[i]) for i in train_samples]
