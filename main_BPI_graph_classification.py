@@ -150,6 +150,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     epoch_train_losses, epoch_val_losses, epoch_test_losses = [], [], []
     epoch_train_accs, epoch_val_accs, epoch_test_accs = [], [], []
     epoch_train_f1s, epoch_val_f1s, epoch_test_f1s = [], [], []
+    epoch_train_wf1s, epoch_test_wf1s = [], []
     epoch_count = []
     first_epoch = 0
 
@@ -169,14 +170,14 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, optimizer = train_epoch(model, optimizer, device,
+                epoch_train_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, wf1_train, optimizer = train_epoch(model, optimizer, device,
                                                                                            train_loader,
-                                                                                           epoch, actual_labels_train)
+                                                                                           epoch, actual_labels_train, train_samples)
 
-                epoch_val_loss, epoch_val_acc, epoch_val_f1, epoch_val_conf, f1_per_class_val, _ = evaluate_network(model,
+                epoch_val_loss, epoch_val_acc, epoch_val_f1, epoch_val_conf, f1_per_class_val, wf1_val = evaluate_network(model,
                                                                                                                  device, val_loader, epoch,
                                                                                                                  actual_labels_val, val_samples)
-                epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class_test, _ = evaluate_network(model, device,
+                epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class_test, wf1_test = evaluate_network(model, device,
                                                                                                                       test_loader, epoch,
                                                                                                                       actual_labels_test, test_samples)
 
@@ -189,6 +190,8 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                 epoch_train_f1s.append(epoch_train_f1)
                 epoch_val_f1s.append(epoch_val_f1)
                 epoch_test_f1s.append(epoch_test_f1)
+                epoch_train_wf1s.append(wf1_train)
+                epoch_test_wf1s.append(wf1_test)
 
                 epoch_count.append(first_epoch)
                 first_epoch += 1
@@ -334,7 +337,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
         f.write(table)
 
-        plt.subplot(2, 1, 1)
+        plt.subplot(3, 1, 1)
         plt.plot(epoch_count, epoch_train_accs, label='train acc')
         plt.plot(epoch_count, epoch_test_accs, label='test acc')
         plt.legend(loc='best')
@@ -342,13 +345,21 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         plt.ylabel('Accuracy')
         plt.title('Training and Test Accuracy')
 
-        plt.subplot(2, 1, 2)
+        plt.subplot(3, 1, 2)
         plt.plot(epoch_count, epoch_train_f1s, label='train f1')
         plt.plot(epoch_count, epoch_test_f1s, label='test f1')
         plt.legend(loc='best')
         plt.xlabel('Epochs')
         plt.ylabel('F1')
         plt.title('Training and Test f1')
+
+        plt.subplot(3, 1, 3)
+        plt.plot(epoch_count, epoch_train_wf1s, label='train w-f1')
+        plt.plot(epoch_count, epoch_test_wf1s, label='test w-f1')
+        plt.legend(loc='best')
+        plt.xlabel('Epochs')
+        plt.ylabel('weighted F1')
+        plt.title('Training and Test weighted f1')
 
         plt.tight_layout()
         plt.show()

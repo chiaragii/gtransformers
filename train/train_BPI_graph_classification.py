@@ -9,7 +9,7 @@ from train.metrics import accuracy_VOC as f1_score
 import math
 
 
-def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels):
+def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels, class_proportions):
 
     model.train()
     epoch_loss = 0
@@ -54,7 +54,22 @@ def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels):
     epoch_train_f1 = epoch_train_f1*100
     epoch_train_acc = epoch_train_acc*100
 
-    return epoch_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, optimizer
+    tp = np.diag(epoch_train_conf)
+    fp = np.sum(epoch_train_conf, axis=0) - tp
+    fn = np.sum(epoch_train_conf, axis=1) - tp
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1_per_class = 2 * precision * recall / (precision + recall)
+
+    acc = 0
+    for i in range(0, len(f1_per_class)):
+        if math.isnan(f1_per_class[i]):
+            acc += 0
+        else:
+            acc += f1_per_class[i] * list(class_proportions.values())[i]
+    weighted_f1 = (acc / sum(list(class_proportions.values()))) * 100
+
+    return epoch_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, weighted_f1, optimizer
 
 
 def evaluate_network(model, device, data_loader, epoch, actual_labels, class_proportions):
