@@ -19,10 +19,6 @@ def accuracy_TU(scores, targets, label_dict):
     return acc, confusion_m
 
 
-def F1_measure(score, targets):
-    return f1_score(targets, score, average='weighted')
-
-
 def accuracy_MNIST_CIFAR(scores, targets):
     scores = scores.detach().argmax(dim=1)
     acc = (scores == targets).float().sum().item()

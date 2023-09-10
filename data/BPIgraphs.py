@@ -42,11 +42,16 @@ class GraphsDGL(torch.utils.data.Dataset):
                 subgraph = []
                 event_number = []
                 # only creating prefix graphs of len > num_nodes
-                if j <= self.num_nodes:
-                    if j==num_nodes-1:
-                        for k in range(0, j):
-                            deleted = i['nodes'][k + 1].split(' ')[3]
+                if j < self.num_nodes:
+                    if len(i['nodes']) <= self.num_nodes:
+                        if j != len(i['nodes']) - 1:
+                            deleted = i['nodes'][j + 1].split(' ')[3]
                             self.deleted_labels.append(deleted)
+                    else:
+                        if j == num_nodes - 1:
+                            for k in range(0, j):
+                                deleted = i['nodes'][k + 1].split(' ')[3]
+                                self.deleted_labels.append(deleted)
                 if j >= self.num_nodes:
                     for k in range(0, j):
                         subgraph.append(i['nodes'][k])
@@ -61,8 +66,6 @@ class GraphsDGL(torch.utils.data.Dataset):
                                 subgraph.append(w)
                     subgraph.append(label)
                     self.subgraph_list.append(subgraph)
-
-
 
         self.n_samples = len(self.subgraph_list)
         self.graph_lists = []
@@ -88,8 +91,8 @@ class GraphsDGL(torch.utils.data.Dataset):
                     feature.append(float(i.split(' ')[6]))
                     features.append(feature)
                 elif i.startswith('e'):
-                    source.append(int(i.split(' ')[1][0]) - 1)
-                    destination.append(int(i.split(' ')[2][0]) - 1)
+                    source.append(int(int(float(i.split(' ')[1]))) - 1)
+                    destination.append(int(int(float(i.split(' ')[2]))) - 1)
                 else:
                     label_list.append(i)
             g.add_nodes(number_of_nodes)
