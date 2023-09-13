@@ -46,7 +46,7 @@ TEST ACCURACY: 57.5992%
 TRAIN ACCURACY: 67.5318%
 TEST F1-SCORE: 62.9979%
 TRAIN F1-SCORE: 73.6760%
-        
+
 
 Convergence Time (Epochs): 128.0000
 Total Time Taken: 14.8717 hrs

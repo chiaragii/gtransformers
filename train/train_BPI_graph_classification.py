@@ -10,7 +10,6 @@ import math
 
 
 def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels, class_proportions):
-
     model.train()
     epoch_loss = 0
     epoch_train_acc = 0
@@ -26,18 +25,19 @@ def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels, cla
         try:
             batch_lap_pos_enc = batch_graphs.ndata['lap_pos_enc'].to(device)
             sign_flip = torch.rand(batch_lap_pos_enc.size(1)).to(device)
-            sign_flip[sign_flip >= 0.5] = 1.0; sign_flip[sign_flip < 0.5] = -1.0
+            sign_flip[sign_flip >= 0.5] = 1.0;
+            sign_flip[sign_flip < 0.5] = -1.0
             batch_lap_pos_enc = batch_lap_pos_enc * sign_flip.unsqueeze(0)
         except:
             batch_lap_pos_enc = None
-            
+
         try:
             batch_wl_pos_enc = batch_graphs.ndata['wl_pos_enc'].to(device)
         except:
             batch_wl_pos_enc = None
 
         batch_scores = model.forward(batch_graphs, batch_x, batch_e, batch_lap_pos_enc, batch_wl_pos_enc)
-    
+
         loss = model.loss(batch_scores, torch.flatten(batch_labels))
         loss.backward()
         optimizer.step()
@@ -51,8 +51,8 @@ def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels, cla
     epoch_loss /= (iter + 1)
     epoch_train_acc /= nb_data
     epoch_train_f1 /= (iter + 1)
-    epoch_train_f1 = epoch_train_f1*100
-    epoch_train_acc = epoch_train_acc*100
+    epoch_train_f1 = epoch_train_f1 * 100
+    epoch_train_acc = epoch_train_acc * 100
 
     tp = np.diag(epoch_train_conf)
     fp = np.sum(epoch_train_conf, axis=0) - tp
@@ -73,7 +73,6 @@ def train_epoch(model, optimizer, device, data_loader, epoch, actual_labels, cla
 
 
 def evaluate_network(model, device, data_loader, epoch, actual_labels, class_proportions):
-    
     model.eval()
     epoch_test_loss = 0
     epoch_test_acc = 0
@@ -90,12 +89,12 @@ def evaluate_network(model, device, data_loader, epoch, actual_labels, class_pro
                 batch_lap_pos_enc = batch_graphs.ndata['lap_pos_enc'].to(device)
             except:
                 batch_lap_pos_enc = None
-            
+
             try:
                 batch_wl_pos_enc = batch_graphs.ndata['wl_pos_enc'].to(device)
             except:
                 batch_wl_pos_enc = None
-                
+
             batch_scores = model.forward(batch_graphs, batch_x, batch_e, batch_lap_pos_enc, batch_wl_pos_enc)
             loss = model.loss(batch_scores, torch.flatten(batch_labels))
             epoch_test_loss += loss.detach().item()
@@ -108,25 +107,22 @@ def evaluate_network(model, device, data_loader, epoch, actual_labels, class_pro
         epoch_test_loss /= (iter + 1)
         epoch_test_acc /= nb_data
         epoch_test_f1 /= (iter + 1)
-        epoch_test_f1 = epoch_test_f1*100
-        epoch_test_acc = epoch_test_acc*100
+        epoch_test_f1 = epoch_test_f1 * 100
+        epoch_test_acc = epoch_test_acc * 100
 
         tp = np.diag(epoch_test_conf)
         fp = np.sum(epoch_test_conf, axis=0) - tp
         fn = np.sum(epoch_test_conf, axis=1) - tp
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
-        f1_per_class = 2*precision*recall/(precision+recall)
+        f1_per_class = 2 * precision * recall / (precision + recall)
 
         acc = 0
-        for i in range (0,len(f1_per_class)):
+        for i in range(0, len(f1_per_class)):
             if math.isnan(f1_per_class[i]):
                 acc += 0
             else:
-                acc += f1_per_class[i]*list(class_proportions.values())[i]
-        weighted_f1 = (acc/sum(list(class_proportions.values())))*100
-
+                acc += f1_per_class[i] * list(class_proportions.values())[i]
+        weighted_f1 = (acc / sum(list(class_proportions.values()))) * 100
 
     return epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class, weighted_f1
-
-

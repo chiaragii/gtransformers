@@ -100,9 +100,6 @@ class GraphsDGL(torch.utils.data.Dataset):
                 g.add_edges(source, destination)
             g.ndata['feat'] = torch.tensor(features)
             g.edata['feat'] = torch.ones(len(source))
-            # g.ndata['feat'] = torch.zeros((number_of_nodes, 3))
-            # for i in range(0, len(features)):
-            #    g.nodes[i].data['feat'] += torch.tensor(features[i]).type(torch.LongTensor)
             self.graph_lists.append(g)
 
         lines = 0

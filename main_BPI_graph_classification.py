@@ -15,8 +15,6 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from collections import Counter
-
 import matplotlib.pyplot as plt
 
 from tabulate import tabulate
