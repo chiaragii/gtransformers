@@ -9,6 +9,10 @@ import numpy as np
 import networkx as nx
 import hashlib
 
+"""
+This class creates the prefixes from the dataset and prepares the DGL graphs
+"""
+
 
 class GraphsDGL(torch.utils.data.Dataset):
     def __init__(self, data_dir, num_nodes):
@@ -36,7 +40,8 @@ class GraphsDGL(torch.utils.data.Dataset):
 
         self.subgraph_list = []
         self.deleted_labels = []
-        # creating subgraphs
+
+        # creating sub-graphs
         for i in self.data:
             for j in range(0, len(i['nodes'])):
                 subgraph = []
@@ -73,6 +78,9 @@ class GraphsDGL(torch.utils.data.Dataset):
         self._prepare()
 
     def _prepare(self):
+        """
+        creates the dgl graphs
+        """
 
         label_list = []
 
@@ -105,7 +113,6 @@ class GraphsDGL(torch.utils.data.Dataset):
         lines = 0
         labels = []
         indices = []
-        hot_labels = []
         with open('data/graphs/attributi.txt', 'r') as f:
             for line in f:
                 # for one hot encoding
@@ -142,22 +149,6 @@ class GraphsDGL(torch.utils.data.Dataset):
                 And its label.
         """
         return self.graph_lists[idx], self.graph_labels[idx]
-
-
-class GraphDatasetDGL(torch.utils.data.Dataset):
-    def __init__(self, name='Zinc'):
-        t0 = time.time()
-        self.name = name
-
-        self.num_atom_type = 28  # known meta-info about the zinc dataset; can be calculated as well
-        self.num_bond_type = 4  # known meta-info about the zinc dataset; can be calculated as well
-
-        data_dir = './data/molecules'
-
-        self.train = GraphsDGL(data_dir, 'train', num_graphs=10000)
-        self.val = GraphsDGL(data_dir, 'val', num_graphs=1000)
-        self.test = GraphsDGL(data_dir, 'test', num_graphs=1000)
-        print("Time taken: {:.4f}s".format(time.time() - t0))
 
 
 def self_loop(g):
@@ -285,6 +276,11 @@ def wl_positional_encoding(g):
     return g
 
 
+"""
+This class creates DGL graphs for training set, test set and validation set
+"""
+
+
 class GraphsDataset(torch.utils.data.Dataset):
 
     def __init__(self, name, num_nodes):
@@ -301,6 +297,9 @@ class GraphsDataset(torch.utils.data.Dataset):
         print("[I] Data load time: {:.4f}s".format(time.time() - start))
 
     def check_class_imbalance(self, deleted_labels, label_dict, graph_labels, num_classes):
+        """
+        calculates the class distributions and the labels dropped from the dataset
+        """
         label_count = [0] * num_classes
         for label in graph_labels:
             label_index = int(label)

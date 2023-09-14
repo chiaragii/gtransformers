@@ -19,16 +19,6 @@ import matplotlib.pyplot as plt
 
 from tabulate import tabulate
 
-
-class DotDict(dict):
-    def __init__(self, **kwds):
-        self.update(kwds)
-        self.__dict__ = self
-
-
-"""
-    IMPORTING CUSTOM MODULES/METHODS
-"""
 from nets.BPI_graph_classification.load_net import gnn_model
 from data.data import LoadData
 
@@ -82,7 +72,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
     label_proportions_train, actual_labels_train, train_samples, deleted_labels_train = \
         dataset.check_class_imbalance(dataset.train.deleted_labels, dataset.train.label_dict,
                                       dataset.train.graph_labels, net_params['n_classes'])
-
 
     # label proportion in test
     label_proportions_test, actual_labels_test, test_samples, deleted_labels_test = \
@@ -168,16 +157,20 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
                 start = time.time()
 
-                epoch_train_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, wf1_train, optimizer = train_epoch(model, optimizer, device,
-                                                                                           train_loader,
-                                                                                           epoch, actual_labels_train, train_samples)
+                epoch_train_loss, epoch_train_acc, epoch_train_f1, epoch_train_conf, wf1_train, optimizer = train_epoch(
+                    model, optimizer, device,
+                    train_loader,
+                    epoch, actual_labels_train, train_samples)
 
-                epoch_val_loss, epoch_val_acc, epoch_val_f1, epoch_val_conf, f1_per_class_val, wf1_val = evaluate_network(model,
-                                                                                                                 device, val_loader, epoch,
-                                                                                                                 actual_labels_val, val_samples)
-                epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class_test, wf1_test = evaluate_network(model, device,
-                                                                                                                      test_loader, epoch,
-                                                                                                                      actual_labels_test, test_samples)
+                epoch_val_loss, epoch_val_acc, epoch_val_f1, epoch_val_conf, f1_per_class_val, wf1_val = evaluate_network(
+                    model,
+                    device, val_loader, epoch,
+                    actual_labels_val, val_samples)
+
+                epoch_test_loss, epoch_test_acc, epoch_test_f1, epoch_test_conf, f1_per_class_test, wf1_test = evaluate_network(
+                    model, device,
+                    test_loader, epoch,
+                    actual_labels_test, test_samples)
 
                 epoch_train_losses.append(epoch_train_loss)
                 epoch_val_losses.append(epoch_val_loss)
@@ -245,8 +238,15 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
             except Exception:
                 break
 
-    _, test_acc, test_f1, confusion_test, f1s_per_class_test, weighted_f1_test = evaluate_network(model, device, test_loader, epoch, actual_labels_test, test_samples)
-    _, train_acc, train_f1, confusion_train, f1s_per_class_train, weighted_f1_train = evaluate_network(model, device, train_loader, epoch, actual_labels_train, train_samples)
+    _, test_acc, test_f1, confusion_test, f1s_per_class_test, weighted_f1_test = evaluate_network(model, device,
+                                                                                                  test_loader, epoch,
+                                                                                                  actual_labels_test,
+                                                                                                  test_samples)
+    _, train_acc, train_f1, confusion_train, f1s_per_class_train, weighted_f1_train = evaluate_network(model, device,
+                                                                                                       train_loader,
+                                                                                                       epoch,
+                                                                                                       actual_labels_train,
+                                                                                                       train_samples)
 
     print("Test Accuracy: {:.4f}".format(test_acc))
     print("Train Accuracy: {:.4f}".format(train_acc))
@@ -283,7 +283,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(confusion_test, tablefmt='grid')
         f.write(table + '\n')
 
-
         f.write("""\n Test F1-score per class: \n""")
         data = [(item, score) for item, score in zip(actual_labels_test, f1s_per_class_test)]
         table = tabulate(data, headers=["Class", "F1-score"], tablefmt='grid')
@@ -305,7 +304,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         data = [(i, deleted_labels_test[i]) for i in deleted_labels_test]
         table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
         f.write(table)
-
 
         f.write('\n\n<------------------------------------- Train Results ------------------------------------->\n\n')
 
@@ -367,7 +365,6 @@ def main():
     """
         USER CONTROLS
     """
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help="Please give a config.json file with training/model/data/param details")
     parser.add_argument('--gpu_id', help="Please give a value for gpu id")
@@ -484,8 +481,6 @@ def main():
     net_params['in_dim'] = dataset.train[0][0].ndata['feat'][0].size(0)  # node_dim (feat is an integer)
     net_params['n_classes'] = len(dataset.train.label_dict.keys())
 
-    # net_params['num_bond_type'] = dataset.num_bond_type
-
     root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(
         config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
     root_ckpt_dir = out_dir + 'checkpoints/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(
@@ -503,7 +498,6 @@ def main():
         os.makedirs(out_dir + 'configs')
 
     net_params['total_param'] = view_model_param(MODEL_NAME, net_params)
-
 
     train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs)
 
