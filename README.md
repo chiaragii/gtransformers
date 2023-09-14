@@ -12,7 +12,7 @@ To run our application you need to have installed:
   curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 
   # For OSX
-  curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh'
+  curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
   ```
   
 * A set of libraries that you can configure inside a Conda Environment by using the [env.yml](https://github.com/chiaragii/gtransformers/blob/main/env.yml)
