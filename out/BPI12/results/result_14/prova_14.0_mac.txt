@@ -253,9 +253,9 @@ Class probabilities in testset:
 | END                         |           0.0775585   |
 +-----------------------------+-----------------------+
 
-Labels deleted in testset:
+Labels dropped in testset:
 +-----------------------------+-------------------+
-| Class                       |   Deleted Samples |
+| Class                       |   Dropped Samples |
 +=============================+===================+
 | ASUBMITTED                  |              4319 |
 +-----------------------------+-------------------+
@@ -504,9 +504,9 @@ Class probabilities in trainset:
 | END                         |           0.0693786   |
 +-----------------------------+-----------------------+
 
-Labels deleted in trainset:
+Labels dropped in trainset:
 +-----------------------------+-------------------+
-| Class                       |   Deleted Samples |
+| Class                       |   Dropped Samples |
 +=============================+===================+
 | ASUBMITTED                  |              8768 |
 +-----------------------------+-------------------+
