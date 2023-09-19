@@ -1,6 +1,8 @@
 # gtransformers
-Big Data Analytics and Machine Learning course project. <br>
-Starting from a dataset of graphs, representing the execution of a process model, the goal of this work is to predict the next activity of the process. In order to do so, this work tries to apply the Graph Transformer architecture to the BPI12 dataset.
+This work is a Big Data Analytics and Machine Learning course project. <br>
+This project extends the Graph Transformer architecture already developed in a [previous study](https://github.com/graphdeeplearning/graphtransformer) in order to perform activity prediction in graph structured data.
+Starting from a dataset of graphs representing the execution of a process model, the goal of this work is to predict the next activity of the process. <br>
+In order to do so, this work tries to apply the Graph Transformer architecture to the BPI12 dataset.
 
 ### Requirements
 To run our application you need to have installed:

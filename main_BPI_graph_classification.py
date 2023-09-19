@@ -300,9 +300,9 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\n\nLabels deleted in testset:\n""")
+        f.write("""\n\nLabels dropped in testset:\n""")
         data = [(i, deleted_labels_test[i]) for i in deleted_labels_test]
-        table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
+        table = tabulate(data, headers=["Class", "Dropped Samples"], tablefmt='grid')
         f.write(table)
 
         f.write('\n\n<------------------------------------- Train Results ------------------------------------->\n\n')
@@ -328,9 +328,9 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "Class Probabilities"], tablefmt='grid')
         f.write(table)
 
-        f.write("""\n\nLabels deleted in trainset:\n""")
+        f.write("""\n\nLabels dropped in trainset:\n""")
         data = [(i, deleted_labels_train[i]) for i in deleted_labels_train]
-        table = tabulate(data, headers=["Class", "Deleted Samples"], tablefmt='grid')
+        table = tabulate(data, headers=["Class", "Dropped Samples"], tablefmt='grid')
         f.write(table)
 
         plt.subplot(3, 1, 1)
