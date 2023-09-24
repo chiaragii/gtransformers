@@ -200,8 +200,8 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                 t.set_postfix(time=time.time() - start, lr=optimizer.param_groups[0]['lr'],
                               train_loss=epoch_train_loss, val_loss=epoch_val_loss,
                               train_acc=epoch_train_acc, val_acc=epoch_val_acc,
-                              test_acc=epoch_test_acc, train_f1=epoch_train_f1,
-                              val_f1=epoch_val_f1, test_f1=epoch_test_f1)
+                              test_acc=epoch_test_acc, train_f1=wf1_train,
+                              val_f1=wf1_val, test_f1=wf1_test)
 
                 per_epoch_time.append(time.time() - start)
 
@@ -250,8 +250,6 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
     print("Test Accuracy: {:.4f}".format(test_acc))
     print("Train Accuracy: {:.4f}".format(train_acc))
-    print("Test F1-score: {:.4f}".format(test_f1))
-    print("Train F1-score: {:.4f}".format(train_f1))
     print("Weighted Test F1-score: {:.4f}".format(weighted_f1_test))
     print("Weighted Train F1-score: {:.4f}".format(weighted_f1_train))
     print("Convergence Time (Epochs): {:.4f}".format(epoch))
@@ -272,10 +270,10 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
                                                                                                   len(testset),
                                                                                                   len(valset)))
 
-        f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}%\nTRAIN ACCURACY: {:.4f}%\nTEST F1-SCORE: {:.4f}%\nTRAIN F1-SCORE: {:.4f}%
+        f.write("""\n\nFINAL RESULTS\nTEST ACCURACY: {:.4f}%\nTRAIN ACCURACY: {:.4f}%\nWeighted Test F1-scores per class: {:.4f}%\nWeighted Train F1-scores per class: {:.4f}%
         \n\nConvergence Time (Epochs): {:.4f}\nTotal Time Taken: {:.4f} hrs\nNum Epochs: {}\nAverage Time Per Epoch: {:.4f} s\n\n\n"""
-                .format(np.mean(np.array(test_acc)), np.mean(np.array(train_acc)), np.mean(np.array(test_f1)),
-                        np.mean(np.array(train_f1)), epoch, (time.time() - t0) / 3600, first_epoch,
+                .format(np.mean(np.array(test_acc)), np.mean(np.array(train_acc)), weighted_f1_test,
+                        weighted_f1_train, epoch, (time.time() - t0) / 3600, first_epoch,
                         np.mean(per_epoch_time)))
 
         f.write('\n<------------------------------------- Test Results ------------------------------------->\n\n')

@@ -44,8 +44,8 @@ Validation graphs: 14566
 FINAL RESULTS
 TEST ACCURACY: 58.3306%
 TRAIN ACCURACY: 61.6178%
-TEST F1-SCORE: 64.3170%
-TRAIN F1-SCORE: 67.7323%
+Weighted Test F1-scores per class: 52.5520%
+Weighted Train F1-scores per class: 55.5051%
         
 
 Convergence Time (Epochs): 198.0000
