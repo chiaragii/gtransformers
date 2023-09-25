@@ -1,4 +1,4 @@
-# gtransformers
+# Graph Trasformer applicato all’activity prediction su reti di Petri​ 
 This work is a Big Data Analytics and Machine Learning course project. <br>
 This project extends the Graph Transformer architecture already developed in a [previous study](https://github.com/graphdeeplearning/graphtransformer) in order to perform activity prediction in graph structured data.
 Starting from a dataset of graphs representing the execution of a process model, the goal of this work is to predict the next activity of the process. <br>
