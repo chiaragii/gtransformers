@@ -38,7 +38,7 @@ python main_BPI_graph_classification.py
 You can change the configuration parameters in the *GraphsTransformer.json* file inside the config folder.
 
 ### Documentation
-In this section you can find the documentation of our project: 
+In this section you can find the documentation of our project: [Documentation](https://github.com/chiaragii/gtransformers/blob/main/docs/Graph%20Trasformer%20applicato%20all%E2%80%99activity%20prediction%20su%20reti%20di%20Petri%E2%80%8B%20.pdf)
 
 ### Contributors
 | Contributor name | Contacts |
