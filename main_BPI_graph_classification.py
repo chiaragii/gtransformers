@@ -331,7 +331,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         table = tabulate(data, headers=["Class", "Dropped Samples"], tablefmt='grid')
         f.write(table)
 
-        plt.subplot(3, 1, 1)
+        plt.subplot(2, 1, 1)
         plt.plot(epoch_count, epoch_train_accs, label='train acc')
         plt.plot(epoch_count, epoch_test_accs, label='test acc')
         plt.legend(loc='best')
@@ -339,15 +339,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
         plt.ylabel('Accuracy')
         plt.title('Training and Test Accuracy')
 
-        plt.subplot(3, 1, 2)
-        plt.plot(epoch_count, epoch_train_f1s, label='train f1')
-        plt.plot(epoch_count, epoch_test_f1s, label='test f1')
-        plt.legend(loc='best')
-        plt.xlabel('Epochs')
-        plt.ylabel('F1')
-        plt.title('Training and Test f1')
-
-        plt.subplot(3, 1, 3)
+        plt.subplot(2, 1, 2)
         plt.plot(epoch_count, epoch_train_wf1s, label='train w-f1')
         plt.plot(epoch_count, epoch_test_wf1s, label='test w-f1')
         plt.legend(loc='best')
